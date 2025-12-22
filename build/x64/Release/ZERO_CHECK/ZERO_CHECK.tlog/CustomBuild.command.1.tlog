@@ -1,0 +1,10 @@
+^C:\USERS\USER\DESKTOP\МУУСОР\PACMAN3D\BUILD\CMAKEFILES\673A0A0E4904A0B809E2C8BC83D07A1F\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/User/Desktop/муусор/pacman3d -BC:/Users/User/Desktop/муусор/pacman3d/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/User/Desktop/муусор/pacman3d/build/VoxelPacman.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

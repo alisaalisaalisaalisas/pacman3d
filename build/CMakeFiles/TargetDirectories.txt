@@ -1,0 +1,3 @@
+C:/Users/User/Desktop/муусор/pacman3d/build/CMakeFiles/voxel_pacman.dir
+C:/Users/User/Desktop/муусор/pacman3d/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/User/Desktop/муусор/pacman3d/build/CMakeFiles/ZERO_CHECK.dir
