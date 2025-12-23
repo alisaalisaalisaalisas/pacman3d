@@ -1,290 +1,121 @@
-// SpriteManager.cpp - Complete sprite loading and rendering implementation for SDL2
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <iostream>
-#include <map>
+#include "../glad/glad.h"
+#include "SpriteManager.h"
 #include "SpriteData.h"
+#include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
 
-/**
- * Complete Sprite Manager for Pac-Man Game
- * Handles loading, caching, and rendering all sprite sheets
- */
+SpriteManager::SpriteManager() : quadVAO(0), quadVBO(0) {}
 
-class SpriteManager {
-private:
-    std::map<std::string, SDL_Texture*> textures;
-    SDL_Renderer* renderer;
-
-public:
-    SpriteManager(SDL_Renderer* rend) : renderer(rend) {
-        loadAllSprites();
-    }
-
-    // Load all sprite sheets into memory
-    void loadAllSprites() {
-        // Load Pac-Man animation sprites
-        loadTexture("pacman", "assets/sprites/pacman_animation.png");
-        
-        // Load Ghost sprites
-        loadTexture("ghosts", "assets/sprites/ghosts_animation.png");
-        
-        // Load Maze walls
-        loadTexture("walls", "assets/sprites/maze_walls.png");
-        
-        // Load Collectibles
-        loadTexture("collectibles", "assets/sprites/collectibles.png");
-        
-        // Load UI elements
-        loadTexture("ui", "assets/sprites/ui_elements.png");
-        
-        // Load Effects
-        loadTexture("effects", "assets/sprites/effects_animations.png");
-        
-        std::cout << "✓ All sprite sheets loaded successfully!" << std::endl;
-    }
-
-    // Load individual texture
-    bool loadTexture(const std::string& key, const std::string& filepath) {
-        SDL_Surface* surface = IMG_Load(filepath.c_str());
-        if (!surface) {
-            std::cerr << "ERROR: Failed to load " << filepath << " - " 
-                      << IMG_GetError() << std::endl;
-            return false;
-        }
-
-        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-        SDL_FreeSurface(surface);
-
-        if (!texture) {
-            std::cerr << "ERROR: Failed to create texture from " << filepath << std::endl;
-            return false;
-        }
-
-        textures[key] = texture;
-        std::cout << "✓ Loaded: " << filepath << std::endl;
-        return true;
-    }
-
-    // Render sprite with source rectangle
-    void renderSprite(const std::string& sheetKey, const Rect& srcRect, 
-                      int screenX, int screenY, int width = 32, int height = 32) {
-        if (textures.find(sheetKey) == textures.end()) {
-            std::cerr << "ERROR: Sprite sheet '" << sheetKey << "' not found!" << std::endl;
-            return;
-        }
-
-        SDL_Rect src = {srcRect.x, srcRect.y, srcRect.w, srcRect.h};
-        SDL_Rect dst = {screenX, screenY, width, height};
-        
-        SDL_RenderCopy(renderer, textures[sheetKey], &src, &dst);
-    }
-
-    // Render Pac-Man
-    void renderPacMan(int direction, int animFrame, int screenX, int screenY) {
-        Rect sprite = PacManSprites::frames[direction][animFrame % 3];
-        renderSprite("pacman", sprite, screenX, screenY, 32, 32);
-    }
-
-    // Render Ghost
-    void renderGhost(int color, int animFrame, int screenX, int screenY) {
-        Rect sprite = GhostSprites::frames[color][animFrame % 2];
-        renderSprite("ghosts", sprite, screenX, screenY, 32, 32);
-    }
-
-    // Render Wall Tile
-    void renderWallTile(int wallType, int screenX, int screenY) {
-        Rect sprite = WallSprites::tiles[wallType];
-        renderSprite("walls", sprite, screenX, screenY, 32, 32);
-    }
-
-    // Render Pellet
-    void renderPellet(int screenX, int screenY) {
-        renderSprite("collectibles", CollectibleSprites::SMALL_PELLET, 
-                     screenX, screenY, 8, 8);
-    }
-
-    // Render Power-Up
-    void renderPowerUp(int animFrame, int screenX, int screenY) {
-        Rect sprite = CollectibleSprites::powerUpFrames[animFrame % 3];
-        renderSprite("collectibles", sprite, screenX, screenY, 32, 32);
-    }
-
-    // Render UI Life Icon
-    void renderLifeIcon(int screenX, int screenY) {
-        renderSprite("ui", UISprites::LIFE_ICON, screenX, screenY, 16, 16);
-    }
-
-    // Render Score Number
-    void renderScoreNumber(int digit, int screenX, int screenY) {
-        if (digit < 0 || digit > 9) return;
-        renderSprite("ui", UISprites::numbers[digit], screenX, screenY, 8, 8);
-    }
-
-    // Render Effect Animation
-    void renderGhostVulnerable(int animFrame, int screenX, int screenY) {
-        Rect sprite = EffectSprites::ghostVulnerableFrames[animFrame % 4];
-        renderSprite("effects", sprite, screenX, screenY, 32, 32);
-    }
-
-    void renderDeathExplosion(int animFrame, int screenX, int screenY) {
-        Rect sprite = EffectSprites::deathExplosionFrames[animFrame % 4];
-        renderSprite("effects", sprite, screenX, screenY, 32, 32);
-    }
-
-    // Cleanup
-    ~SpriteManager() {
-        for (auto& pair : textures) {
-            if (pair.second) {
-                SDL_DestroyTexture(pair.second);
-            }
-        }
-        textures.clear();
-    }
-};
-
-// ============================================================================
-// EXAMPLE USAGE IN MAIN GAME LOOP
-// ============================================================================
-
-/*
-int main(int argc, char* argv[]) {
-    // Initialize SDL2
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
-        return 1;
-    }
-
-    // Create window
-    SDL_Window* window = SDL_CreateWindow(
-        "Pac-Man Game",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        800, 600,
-        SDL_WINDOW_SHOWN
-    );
-
-    if (!window) {
-        std::cerr << "Window creation error: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return 1;
-    }
-
-    // Create renderer
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
-    if (!renderer) {
-        std::cerr << "Renderer creation error: " << SDL_GetError() << std::endl;
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
-
-    // Create sprite manager
-    SpriteManager spriteManager(renderer);
-
-    // Game variables
-    int pacmanX = 100, pacmanY = 100;
-    int pacmanDirection = PacManSprites::RIGHT;
-    int pacmanAnimFrame = 0;
-    int animationCounter = 0;
-
-    int ghostX[4] = {300, 350, 400, 450};
-    int ghostY[4] = {250, 250, 250, 250};
-    int ghostAnimFrame[4] = {0, 0, 0, 0};
-
-    // Game loop
-    bool running = true;
-    SDL_Event event;
-    Uint32 lastTime = SDL_GetTicks();
-
-    while (running) {
-        Uint32 currentTime = SDL_GetTicks();
-        float deltaTime = (currentTime - lastTime) / 1000.0f;
-        lastTime = currentTime;
-
-        // Handle events
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                running = false;
-            }
-            if (event.type == SDL_KEYDOWN) {
-                switch (event.key.keysym.sym) {
-                    case SDLK_UP:
-                        pacmanDirection = PacManSprites::UP;
-                        pacmanY -= 32;
-                        break;
-                    case SDLK_DOWN:
-                        pacmanDirection = PacManSprites::DOWN;
-                        pacmanY += 32;
-                        break;
-                    case SDLK_LEFT:
-                        pacmanDirection = PacManSprites::LEFT;
-                        pacmanX -= 32;
-                        break;
-                    case SDLK_RIGHT:
-                        pacmanDirection = PacManSprites::RIGHT;
-                        pacmanX += 32;
-                        break;
-                    case SDLK_ESCAPE:
-                        running = false;
-                        break;
-                }
-            }
-        }
-
-        // Update animation frames
-        animationCounter++;
-        if (animationCounter >= 10) {  // Change frame every 10 frames
-            pacmanAnimFrame++;
-            for (int i = 0; i < 4; i++) {
-                ghostAnimFrame[i]++;
-            }
-            animationCounter = 0;
-        }
-
-        // Render
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
-
-        // Render game board (example)
-        for (int y = 0; y < 10; y++) {
-            for (int x = 0; x < 10; x++) {
-                if ((x + y) % 2 == 0) {
-                    spriteManager.renderWallTile(WallSprites::HORIZONTAL_WALL, 
-                                                  x * 32, y * 32);
-                } else {
-                    spriteManager.renderWallTile(WallSprites::EMPTY_CORRIDOR, 
-                                                  x * 32, y * 32);
-                }
-            }
-        }
-
-        // Render Pac-Man
-        spriteManager.renderPacMan(pacmanDirection, pacmanAnimFrame, pacmanX, pacmanY);
-
-        // Render Ghosts
-        spriteManager.renderGhost(GhostSprites::RED, ghostAnimFrame[0], ghostX[0], ghostY[0]);
-        spriteManager.renderGhost(GhostSprites::BLUE, ghostAnimFrame[1], ghostX[1], ghostY[1]);
-        spriteManager.renderGhost(GhostSprites::ORANGE, ghostAnimFrame[2], ghostX[2], ghostY[2]);
-        spriteManager.renderGhost(GhostSprites::PINK, ghostAnimFrame[3], ghostX[3], ghostY[3]);
-
-        // Render pellets
-        for (int i = 0; i < 5; i++) {
-            spriteManager.renderPellet(100 + i * 50, 400);
-        }
-
-        // Present
-        SDL_RenderPresent(renderer);
-
-        // Cap framerate at 60 FPS
-        SDL_Delay(1000 / 60);
-    }
-
-    // Cleanup
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-
-    return 0;
+SpriteManager::~SpriteManager() {
+    shutdown();
 }
-*/
+
+bool SpriteManager::init() {
+    if (!spriteShader.load("shaders/sprite_vertex.glsl", "shaders/sprite_fragment.glsl")) {
+        std::cerr << "Failed to load sprite shader" << std::endl;
+        return false;
+    }
+    
+    // Load new sprite files
+    if (!pacmanTexture.load("assets/sprites/collectibles.png")) {
+        std::cerr << "Warning: pacman texture not found" << std::endl;
+    }
+    if (!ghostTexture.load("assets/sprites/ghosts.png")) {
+        std::cerr << "Warning: ghost texture not found" << std::endl;
+    }
+    if (!collectiblesTexture.load("assets/sprites/collectibles.png")) {
+        std::cerr << "Warning: collectibles texture not found" << std::endl;
+    }
+    
+    setupQuad();
+    std::cout << "Sprites initialized" << std::endl;
+    return true;
+}
+
+void SpriteManager::shutdown() {
+    if (quadVBO) glDeleteBuffers(1, &quadVBO);
+    if (quadVAO) glDeleteVertexArrays(1, &quadVAO);
+    quadVAO = quadVBO = 0;
+}
+
+void SpriteManager::setupQuad() {
+    glGenVertexArrays(1, &quadVAO);
+    glGenBuffers(1, &quadVBO);
+    glBindVertexArray(quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, 30 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glBindVertexArray(0);
+}
+
+void SpriteManager::renderSprite(const Texture& tex, float u1, float v1, float u2, float v2,
+                                  const glm::vec3& pos, float size, const glm::mat4& view, const glm::mat4& proj) {
+    float vertices[] = {
+        -0.5f, 0.0f, 0.0f,  u1, v1,
+         0.5f, 0.0f, 0.0f,  u2, v1,
+         0.5f, 1.0f, 0.0f,  u2, v2,
+        -0.5f, 0.0f, 0.0f,  u1, v1,
+         0.5f, 1.0f, 0.0f,  u2, v2,
+        -0.5f, 1.0f, 0.0f,  u1, v2
+    };
+    
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+    
+    glm::vec3 camRight = glm::vec3(view[0][0], view[1][0], view[2][0]);
+    glm::vec3 camUp = glm::vec3(0, 1, 0);
+    
+    glm::mat4 model = glm::mat4(1.0f);
+    model[0] = glm::vec4(camRight * size, 0.0f);
+    model[1] = glm::vec4(camUp * size, 0.0f);
+    model[2] = glm::vec4(glm::cross(camRight, camUp) * size, 0.0f);
+    model[3] = glm::vec4(pos, 1.0f);
+    
+    spriteShader.use();
+    spriteShader.setMat4("model", model);
+    spriteShader.setMat4("view", view);
+    spriteShader.setMat4("projection", proj);
+    
+    tex.bind(0);
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+}
+
+void SpriteManager::renderPacMan(int direction, int frame, const glm::vec3& pos, 
+                                  const glm::mat4& view, const glm::mat4& proj) {
+    // Use yellow square from collectibles for now (placeholder until PacmanFinal.png)
+    renderSprite(pacmanTexture, 0.0f, 0.0f, 0.1f, 0.1f, pos, 0.8f, view, proj);
+}
+
+void SpriteManager::renderGhost(int ghostType, int frame, const glm::vec3& pos,
+                                 const glm::mat4& view, const glm::mat4& proj, bool frightened) {
+    // ghosts.png has 4 ghosts in a row: cyan(0), orange(1), red(2), pink(3)
+    // Map ghost types: RED=0->2, BLUE=1->0, ORANGE=2->1, PINK=3->3
+    int spriteIndex = ghostType;
+    switch (ghostType) {
+        case 0: spriteIndex = 2; break; // RED -> position 2
+        case 1: spriteIndex = 3; break; // BLUE -> use pink for now (position 3)
+        case 2: spriteIndex = 1; break; // ORANGE -> position 1
+        case 3: spriteIndex = 3; break; // PINK -> position 3
+    }
+    
+    float w = static_cast<float>(ghostTexture.getWidth());
+    float ghostWidth = w / 4.0f;
+    
+    float u1 = (spriteIndex * ghostWidth) / w;
+    float u2 = ((spriteIndex + 1) * ghostWidth) / w;
+    
+    renderSprite(ghostTexture, u1, 0.0f, u2, 1.0f, pos, 0.9f, view, proj);
+}
+
+void SpriteManager::renderPellet(const glm::vec3& pos, const glm::mat4& view, const glm::mat4& proj) {
+    renderSprite(collectiblesTexture, 0.0f, 0.0f, 0.05f, 0.05f, pos, 0.2f, view, proj);
+}
+
+void SpriteManager::renderPowerUp(int frame, const glm::vec3& pos, const glm::mat4& view, const glm::mat4& proj) {
+    renderSprite(collectiblesTexture, 0.0f, 0.0f, 0.1f, 0.1f, pos, 0.4f, view, proj);
+}

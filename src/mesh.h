@@ -8,9 +8,13 @@ struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec3 color;
+    glm::vec2 texCoord;
     
     Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec3& col)
-        : position(pos), normal(norm), color(col) {}
+        : position(pos), normal(norm), color(col), texCoord(0.0f, 0.0f) {}
+    
+    Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec3& col, const glm::vec2& uv)
+        : position(pos), normal(norm), color(col), texCoord(uv) {}
 };
 
 class Mesh {
@@ -37,5 +41,7 @@ private:
 Mesh createCube(const glm::vec3& color);
 Mesh createBrickCube(const glm::vec3& baseColor);
 Mesh createFloorTile(const glm::vec3& color);
+Mesh createTexturedCube(const glm::vec3& color);
+Mesh createTexturedFloorTile(const glm::vec3& color);
 
 #endif // MESH_H

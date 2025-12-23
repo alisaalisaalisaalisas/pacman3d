@@ -15,6 +15,9 @@ public:
     // Setup isometric camera for Pac-Man view
     void setupIsometric(float distance = 15.0f, float height = 10.0f, float angle = 45.0f);
     
+    // Setup third person camera following player
+    void setupThirdPerson(const glm::vec3& playerPos, float playerAngle, float distance = 5.0f, float height = 3.0f);
+    
     // Set perspective projection
     void setPerspective(float fov, float aspect, float near_plane, float far_plane);
     

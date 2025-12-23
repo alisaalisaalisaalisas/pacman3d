@@ -29,6 +29,19 @@ void Camera::setupIsometric(float distance, float height, float angle) {
     up = glm::vec3(0.0f, 1.0f, 0.0f);
 }
 
+void Camera::setupThirdPerson(const glm::vec3& playerPos, float playerAngle, float distance, float height) {
+    // Position camera behind player based on their facing direction
+    float angle_rad = glm::radians(playerAngle);
+    
+    position.x = playerPos.x - std::sin(angle_rad) * distance;
+    position.y = playerPos.y + height;
+    position.z = playerPos.z - std::cos(angle_rad) * distance;
+    
+    // Look at player position (slightly ahead)
+    target = playerPos + glm::vec3(std::sin(angle_rad) * 2.0f, 0.5f, std::cos(angle_rad) * 2.0f);
+    up = glm::vec3(0.0f, 1.0f, 0.0f);
+}
+
 void Camera::setPerspective(float fov, float aspect, float near_plane, float far_plane) {
     fov_degrees = fov;
     aspect_ratio = aspect;

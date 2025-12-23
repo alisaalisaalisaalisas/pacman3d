@@ -18,6 +18,11 @@ set(SOURCES
     src/entity.cpp
     src/pacman.cpp
     src/ghost.cpp
+    src/audio.cpp
+    src/texture.cpp
+    src/SpriteManager.cpp
+    src/model.cpp
+    src/ui.cpp
     glad/glad.c
 )
 
@@ -30,8 +35,16 @@ set(HEADERS
     src/entity.h
     src/pacman.h
     src/ghost.h
+    src/audio.h
+    src/texture.h
+    src/SpriteManager.h
+    src/SpriteData.h
+    src/model.h
+    src/ui.h
+    src/miniaudio.h
+    src/stb_image.h
+    src/tiny_gltf.h
     glad/glad.h
-    glad/khrplatform.h
 )
 
 add_executable(voxel_pacman ${SOURCES} ${HEADERS})
@@ -49,8 +62,6 @@ target_link_libraries(voxel_pacman PRIVATE
 
 if(WIN32)
     target_link_libraries(voxel_pacman PRIVATE opengl32)
-elseif(UNIX AND NOT APPLE)
-    target_link_libraries(voxel_pacman PRIVATE dl)
 endif()
 
 add_custom_command(TARGET voxel_pacman POST_BUILD
@@ -63,8 +74,11 @@ add_custom_command(TARGET voxel_pacman POST_BUILD
     ${CMAKE_SOURCE_DIR}/levels $<TARGET_FILE_DIR:voxel_pacman>/levels
 )
 
+add_custom_command(TARGET voxel_pacman POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:voxel_pacman>/assets
+)
+
 if(MSVC)
-    target_compile_options(voxel_pacman PRIVATE /W4)
-else()
-    target_compile_options(voxel_pacman PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(voxel_pacman PRIVATE /W3 /bigobj)
 endif()

@@ -36,12 +36,20 @@ void Mesh::create(const std::vector<Vertex>& vertices) {
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+    
+    // Position
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    // Normal
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    // Color
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+    // TexCoord
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
+    
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
@@ -120,7 +128,6 @@ Mesh createCube(const glm::vec3& color) {
 Mesh createBrickCube(const glm::vec3& baseColor) {
     std::vector<Vertex> vertices;
     
-    // Create slightly darker colors for sides (brick effect)
     glm::vec3 topColor = baseColor;
     glm::vec3 sideColor = baseColor * 0.85f;
     glm::vec3 bottomColor = baseColor * 0.7f;
@@ -128,7 +135,7 @@ Mesh createBrickCube(const glm::vec3& baseColor) {
     const glm::vec3 front(0, 0, 1), back(0, 0, -1);
     const glm::vec3 left(-1, 0, 0), right(1, 0, 0);
     const glm::vec3 top(0, 1, 0), bottom(0, -1, 0);
-    const float h = 0.48f; // Slightly smaller for gap between bricks
+    const float h = 0.48f;
     
     // Front face (side color)
     vertices.emplace_back(glm::vec3(-h, -h, h), front, sideColor);
@@ -195,6 +202,86 @@ Mesh createFloorTile(const glm::vec3& color) {
     vertices.emplace_back(glm::vec3(-h, y, -h), up, color);
     vertices.emplace_back(glm::vec3(h, y, h), up, color);
     vertices.emplace_back(glm::vec3(-h, y, h), up, color);
+    
+    Mesh mesh;
+    mesh.create(vertices);
+    return mesh;
+}
+
+Mesh createTexturedCube(const glm::vec3& color) {
+    std::vector<Vertex> vertices;
+    
+    const glm::vec3 front(0, 0, 1), back(0, 0, -1);
+    const glm::vec3 left(-1, 0, 0), right(1, 0, 0);
+    const glm::vec3 top(0, 1, 0), bottom(0, -1, 0);
+    const float h = 0.48f;
+    
+    // Front face with UV
+    vertices.emplace_back(glm::vec3(-h, -h, h), front, color, glm::vec2(0, 0));
+    vertices.emplace_back(glm::vec3(h, -h, h), front, color, glm::vec2(1, 0));
+    vertices.emplace_back(glm::vec3(h, h, h), front, color, glm::vec2(1, 1));
+    vertices.emplace_back(glm::vec3(-h, -h, h), front, color, glm::vec2(0, 0));
+    vertices.emplace_back(glm::vec3(h, h, h), front, color, glm::vec2(1, 1));
+    vertices.emplace_back(glm::vec3(-h, h, h), front, color, glm::vec2(0, 1));
+    
+    // Back face
+    vertices.emplace_back(glm::vec3(h, -h, -h), back, color, glm::vec2(0, 0));
+    vertices.emplace_back(glm::vec3(-h, -h, -h), back, color, glm::vec2(1, 0));
+    vertices.emplace_back(glm::vec3(-h, h, -h), back, color, glm::vec2(1, 1));
+    vertices.emplace_back(glm::vec3(h, -h, -h), back, color, glm::vec2(0, 0));
+    vertices.emplace_back(glm::vec3(-h, h, -h), back, color, glm::vec2(1, 1));
+    vertices.emplace_back(glm::vec3(h, h, -h), back, color, glm::vec2(0, 1));
+    
+    // Left face
+    vertices.emplace_back(glm::vec3(-h, -h, -h), left, color, glm::vec2(0, 0));
+    vertices.emplace_back(glm::vec3(-h, -h, h), left, color, glm::vec2(1, 0));
+    vertices.emplace_back(glm::vec3(-h, h, h), left, color, glm::vec2(1, 1));
+    vertices.emplace_back(glm::vec3(-h, -h, -h), left, color, glm::vec2(0, 0));
+    vertices.emplace_back(glm::vec3(-h, h, h), left, color, glm::vec2(1, 1));
+    vertices.emplace_back(glm::vec3(-h, h, -h), left, color, glm::vec2(0, 1));
+    
+    // Right face
+    vertices.emplace_back(glm::vec3(h, -h, h), right, color, glm::vec2(0, 0));
+    vertices.emplace_back(glm::vec3(h, -h, -h), right, color, glm::vec2(1, 0));
+    vertices.emplace_back(glm::vec3(h, h, -h), right, color, glm::vec2(1, 1));
+    vertices.emplace_back(glm::vec3(h, -h, h), right, color, glm::vec2(0, 0));
+    vertices.emplace_back(glm::vec3(h, h, -h), right, color, glm::vec2(1, 1));
+    vertices.emplace_back(glm::vec3(h, h, h), right, color, glm::vec2(0, 1));
+    
+    // Top face
+    vertices.emplace_back(glm::vec3(-h, h, h), top, color, glm::vec2(0, 0));
+    vertices.emplace_back(glm::vec3(h, h, h), top, color, glm::vec2(1, 0));
+    vertices.emplace_back(glm::vec3(h, h, -h), top, color, glm::vec2(1, 1));
+    vertices.emplace_back(glm::vec3(-h, h, h), top, color, glm::vec2(0, 0));
+    vertices.emplace_back(glm::vec3(h, h, -h), top, color, glm::vec2(1, 1));
+    vertices.emplace_back(glm::vec3(-h, h, -h), top, color, glm::vec2(0, 1));
+    
+    // Bottom face
+    vertices.emplace_back(glm::vec3(-h, -h, -h), bottom, color, glm::vec2(0, 0));
+    vertices.emplace_back(glm::vec3(h, -h, -h), bottom, color, glm::vec2(1, 0));
+    vertices.emplace_back(glm::vec3(h, -h, h), bottom, color, glm::vec2(1, 1));
+    vertices.emplace_back(glm::vec3(-h, -h, -h), bottom, color, glm::vec2(0, 0));
+    vertices.emplace_back(glm::vec3(h, -h, h), bottom, color, glm::vec2(1, 1));
+    vertices.emplace_back(glm::vec3(-h, -h, h), bottom, color, glm::vec2(0, 1));
+    
+    Mesh mesh;
+    mesh.create(vertices);
+    return mesh;
+}
+
+Mesh createTexturedFloorTile(const glm::vec3& color) {
+    std::vector<Vertex> vertices;
+    const glm::vec3 up(0, 1, 0);
+    const float h = 0.5f;
+    const float y = 0.01f;
+    
+    // Counter-clockwise winding when viewed from above (correct for OpenGL CCW front face)
+    vertices.emplace_back(glm::vec3(-h, y, h), up, color, glm::vec2(0, 1));
+    vertices.emplace_back(glm::vec3(h, y, h), up, color, glm::vec2(1, 1));
+    vertices.emplace_back(glm::vec3(h, y, -h), up, color, glm::vec2(1, 0));
+    vertices.emplace_back(glm::vec3(-h, y, h), up, color, glm::vec2(0, 1));
+    vertices.emplace_back(glm::vec3(h, y, -h), up, color, glm::vec2(1, 0));
+    vertices.emplace_back(glm::vec3(-h, y, -h), up, color, glm::vec2(0, 0));
     
     Mesh mesh;
     mesh.create(vertices);

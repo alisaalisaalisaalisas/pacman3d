@@ -4,13 +4,27 @@
 
 MazeRenderer::MazeRenderer() : mazeRef(nullptr) {}
 
+void MazeRenderer::loadTextures() {
+    if (wallTexture.load("assets/sprites/pacman-sprite-wall-1766447227855.png")) {
+        std::cout << "Loaded wall texture" << std::endl;
+    }
+    if (floorTexture.load("assets/sprites/pacman-sprite-ground-1766445952654.png")) {
+        std::cout << "Loaded floor texture" << std::endl;
+    }
+    if (cornerTexture.load("assets/sprites/pacman-sprite-corner-1766447240710.png")) {
+        std::cout << "Loaded corner texture" << std::endl;
+    }
+    texturesLoaded = true;
+}
+
 void MazeRenderer::buildFromMaze(const Maze& maze) {
     mazeRef = &maze;
     wallPositions.clear();
     floorPositions.clear();
     
-    wallMesh = std::make_unique<Mesh>(createBrickCube(WALL_COLOR));
-    floorMesh = std::make_unique<Mesh>(createFloorTile(FLOOR_COLOR));
+    // Use textured meshes
+    wallMesh = std::make_unique<Mesh>(createTexturedCube(WALL_COLOR));
+    floorMesh = std::make_unique<Mesh>(createTexturedFloorTile(FLOOR_COLOR));
     pelletMesh = std::make_unique<Mesh>(createCube(PELLET_COLOR));
     powerMesh = std::make_unique<Mesh>(createCube(POWER_COLOR));
     
@@ -44,10 +58,31 @@ void MazeRenderer::render(Shader& shader, const Camera& camera) {
     shader.setMat4("view", camera.getViewMatrix());
     shader.setMat4("projection", camera.getProjectionMatrix());
     
+    // Render walls with texture
+    if (texturesLoaded && wallTexture.getID() != 0) {
+        shader.setBool("useTexture", true);
+        wallTexture.bind(0);
+        shader.setInt("textureSampler", 0);
+    } else {
+        shader.setBool("useTexture", false);
+    }
+    
     for (const auto& pos : wallPositions) {
         glm::mat4 model = glm::translate(glm::mat4(1.0f), pos);
         shader.setMat4("model", model);
         wallMesh->draw();
+    }
+    
+    // Unbind wall texture
+    wallTexture.unbind();
+    
+    // Render floors with texture
+    if (texturesLoaded && floorTexture.getID() != 0) {
+        shader.setBool("useTexture", true);
+        floorTexture.bind(0);
+        shader.setInt("textureSampler", 0);
+    } else {
+        shader.setBool("useTexture", false);
     }
     
     for (const auto& pos : floorPositions) {
@@ -55,9 +90,16 @@ void MazeRenderer::render(Shader& shader, const Camera& camera) {
         shader.setMat4("model", model);
         floorMesh->draw();
     }
+    
+    // Unbind floor texture
+    floorTexture.unbind();
+    // Reset texture state
+    shader.setBool("useTexture", false);
 }
 
 void MazeRenderer::renderPellets(Shader& shader, const Maze& maze) {
+    shader.setBool("useTexture", false);
+    
     for (int y = 0; y < maze.getHeight(); ++y) {
         for (int x = 0; x < maze.getWidth(); ++x) {
             TileType tile = maze.getTile(x, y);

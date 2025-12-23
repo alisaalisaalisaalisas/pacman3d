@@ -7,4 +7,9 @@ C:\Users\User\Desktop\муусор\pacman3d\src\renderer.cpp;C:\Users\User\Deskt
 C:\Users\User\Desktop\муусор\pacman3d\src\entity.cpp;C:\Users\User\Desktop\муусор\pacman3d\build\voxel_pacman.dir\Release\entity.obj
 C:\Users\User\Desktop\муусор\pacman3d\src\pacman.cpp;C:\Users\User\Desktop\муусор\pacman3d\build\voxel_pacman.dir\Release\pacman.obj
 C:\Users\User\Desktop\муусор\pacman3d\src\ghost.cpp;C:\Users\User\Desktop\муусор\pacman3d\build\voxel_pacman.dir\Release\ghost.obj
+C:\Users\User\Desktop\муусор\pacman3d\src\audio.cpp;C:\Users\User\Desktop\муусор\pacman3d\build\voxel_pacman.dir\Release\audio.obj
+C:\Users\User\Desktop\муусор\pacman3d\src\texture.cpp;C:\Users\User\Desktop\муусор\pacman3d\build\voxel_pacman.dir\Release\texture.obj
+C:\Users\User\Desktop\муусор\pacman3d\src\SpriteManager.cpp;C:\Users\User\Desktop\муусор\pacman3d\build\voxel_pacman.dir\Release\SpriteManager.obj
+C:\Users\User\Desktop\муусор\pacman3d\src\model.cpp;C:\Users\User\Desktop\муусор\pacman3d\build\voxel_pacman.dir\Release\model.obj
+C:\Users\User\Desktop\муусор\pacman3d\src\ui.cpp;C:\Users\User\Desktop\муусор\pacman3d\build\voxel_pacman.dir\Release\ui.obj
 C:\Users\User\Desktop\муусор\pacman3d\glad\glad.c;C:\Users\User\Desktop\муусор\pacman3d\build\voxel_pacman.dir\Release\glad.obj
